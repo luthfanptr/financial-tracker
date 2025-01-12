@@ -13,11 +13,24 @@ public class User {
         this.balance = balance;
     }
 
-    // Getters and setters  
-    public int getId() { return id; }
-    public String getUsername() { return username; }
-    public String getPassword() { return password; }
-    public double getBalance() { return balance; }
-    public void setBalance(double balance) { this.balance = balance; }
-}
+    // Getters and setters
+    public int getId() {
+        return id;
+    }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+}

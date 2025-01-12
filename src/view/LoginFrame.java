@@ -14,10 +14,10 @@ public class LoginFrame extends JFrame {
     public LoginFrame() {
         // Frame properties
         setTitle("Money Tracker - Login");
-        setSize(400, 500);
+        setSize(400, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // Center the frame
-        setResizable(false);
+        setResizable(true);
 
         // Main panel with gradient-like background color
         JPanel mainPanel = new JPanel() {
@@ -45,8 +45,8 @@ public class LoginFrame extends JFrame {
         // Subtitle
         JLabel lblSubtitle = new JLabel("Effortlessly manage your finances.");
         lblSubtitle.setForeground(Color.WHITE);
-        lblSubtitle.setFont(new Font("Arial", Font.PLAIN, 14));
-        lblSubtitle.setBounds(50, 320, 300, 0);
+        lblSubtitle.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        lblSubtitle.setBounds(50, 320, 300, 20);
         lblSubtitle.setHorizontalAlignment(SwingConstants.CENTER);
         mainPanel.add(lblSubtitle);
 
@@ -95,7 +95,7 @@ public class LoginFrame extends JFrame {
             String username = txtUsername.getText();
             String password = new String(txtPassword.getPassword());
 
-            userController = new UserController(); // Initialize user controller
+            userController = new UserController(); // Inisialisasi user controller
 
             User user = userController.login(username, password);
             if (user != null) {
