@@ -21,6 +21,9 @@ public class DashboardFrame extends JFrame {
     private double booksTotal = 0, groceryTotal = 0, clothesTotal = 0, gadgetsTotal = 0;
     private User user;
 
+    // Panel kategori
+    private JPanel panelBooks, panelGrocery, panelClothes, panelGadgets;
+
     public DashboardFrame(User user) {
         this.user = user;
         setTitle("Personal Finance Dashboard");
@@ -57,6 +60,11 @@ public class DashboardFrame extends JFrame {
                 user.setBalance(user.getBalance() + amount);
                 lblBalance.setText("Balance: Rp. " + user.getBalance());
                 txtAmount.setText("");
+
+                // Menyimpan saldo terbaru ke dalam database
+                KeuanganController keuanganController = new KeuanganController();
+                keuanganController.updateUserBalance(user.getUsername(), user.getBalance());
+
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Enter a valid amount.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -75,16 +83,23 @@ public class DashboardFrame extends JFrame {
 
         add(leftPanel, BorderLayout.WEST);
 
+        //TODO Load the user balance from the database
+        KeuanganController keuanganController = new KeuanganController();
+        double userBalance = keuanganController.getUserBalance(user.getUsername()); // Mengambil saldo pengguna dari database
+        user.setBalance(userBalance); // Set saldo ke objek user
+        lblBalance.setText("Balance: Rp. " + user.getBalance()); // Memperbarui label saldo
+
         // Top Panel: Total Expenditure by Category
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new GridLayout(2, 2, 10, 10)); // 2 rows for categories
         topPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         topPanel.setOpaque(false);
 
-        JPanel panelBooks = createCategoryPanel("BOOKS", booksTotal);
-        JPanel panelGrocery = createCategoryPanel("GROCERY", groceryTotal);
-        JPanel panelClothes = createCategoryPanel("CLOTHES", clothesTotal);
-        JPanel panelGadgets = createCategoryPanel("GADGETS", gadgetsTotal);
+        // Panel kategori harus diinisialisasi dulu sebelum digunakan
+        panelBooks = createCategoryPanel("BOOKS", booksTotal);
+        panelGrocery = createCategoryPanel("GROCERY", groceryTotal);
+        panelClothes = createCategoryPanel("CLOTHES", clothesTotal);
+        panelGadgets = createCategoryPanel("GADGETS", gadgetsTotal);
 
         topPanel.add(panelBooks);
         topPanel.add(panelGrocery);
@@ -141,7 +156,7 @@ public class DashboardFrame extends JFrame {
         categoryGroup.add(rbGadgets);
 
         JButton btnAddExpense = createRoundedButton("Add Expense");
-        btnAddExpense.addActionListener(e -> { //? Sukses connect db 
+        btnAddExpense.addActionListener(e -> { //! Add Expense Action 
             String purpose = txtPurpose.getText();
             double money;
             String date = txtDate.getText();
@@ -166,19 +181,21 @@ public class DashboardFrame extends JFrame {
                 lblBalance.setText("Balance: Rp. " + user.getBalance());
         
                 // Menambahkan transaksi ke dalam add_expenditure
-                KeuanganController keuanganController = new KeuanganController();
                 keuanganController.addExpense(user.getUsername(), purpose, money, date, category);
         
                 // Memperbarui kategori di category_table
                 keuanganController.updateCategoryTotal(user.getUsername(), category, money);
         
                 // Menambahkan transaksi ke dalam tableModel (untuk ditampilkan di tabel)
-                tableModel.addRow(new Object[]{
+                tableModel.addRow(new Object[] {
                     purpose,   // Menambahkan Purpose
                     money,     // Menambahkan Money
                     date,      // Menambahkan Date
                     category   // Menambahkan Category
                 });
+
+                // Menyimpan saldo terbaru ke dalam database setelah pengeluaran
+                keuanganController.updateUserBalance(user.getUsername(), user.getBalance());
         
                 // Reset field input setelah transaksi ditambahkan
                 txtPurpose.setText("");
@@ -188,13 +205,13 @@ public class DashboardFrame extends JFrame {
         
                 // Memberikan feedback kepada pengguna
                 JOptionPane.showMessageDialog(this, "Transaction added successfully!");
+                loadCategoryTotals(); //! memperbarui total kategori tanpa relogin
             } catch (NumberFormatException ex) {
                 // Menangani error jika input tidak valid
                 JOptionPane.showMessageDialog(this, "Enter a valid amount.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        }); //? sukses connect db
+        }); //! Add Expense Action 
         
-
         rightPanel.add(createSectionLabel("Purpose:"));
         rightPanel.add(txtPurpose);
         rightPanel.add(createSectionLabel("Money:"));
@@ -210,8 +227,8 @@ public class DashboardFrame extends JFrame {
 
         add(rightPanel, BorderLayout.EAST);
 
-        loadCategoryTotals();
-        loadTransactionHistory();
+        loadCategoryTotals(); // Memperbarui total kategori
+        loadTransactionHistory(); // Memperbarui riwayat transaksi
 
         setVisible(true);
     }
@@ -223,15 +240,19 @@ public class DashboardFrame extends JFrame {
         clothesTotal = keuanganController.getTotalByCategory("Clothes", user);
         gadgetsTotal = keuanganController.getTotalByCategory("Gadgets", user);
 
-        updateCategoryPanel(createCategoryPanel("BOOKS", booksTotal), "BOOKS", booksTotal);
+        // Memperbarui label kategori setelah load
+        updateCategoryPanel(panelBooks, "BOOKS", booksTotal);
+        updateCategoryPanel(panelGrocery, "GROCERY", groceryTotal);
+        updateCategoryPanel(panelClothes, "CLOTHES", clothesTotal);
+        updateCategoryPanel(panelGadgets, "GADGETS", gadgetsTotal);
     }
 
     private void loadTransactionHistory() {
         KeuanganController controller = new KeuanganController();
-        List<Keuangan> transaksi = controller.getTransaksiByUsername(user.getUsername());
+        List<Keuangan> transaksi = controller.getTransactionHistory(user);
         tableModel.setRowCount(0); // Clear existing rows
         for (Keuangan transaksiItem : transaksi) {
-            tableModel.addRow(new Object[]{
+            tableModel.addRow(new Object[] {
                 transaksiItem.getPurpose(),
                 transaksiItem.getMoney(),
                 transaksiItem.getDate(),
