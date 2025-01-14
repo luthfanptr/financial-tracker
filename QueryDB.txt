@@ -1,0 +1,46 @@
+MariaDB [(none)]> CREATE DATABASE fintrack_test;
+Query OK, 1 row affected (0.003 sec)
+
+MariaDB [(none)]> USE fintrack_test
+Database changed
+MariaDB [fintrack_test]> CREATE TABLE users (
+    -> username VARCHAR(50) NOT NULL,
+    -> password VARCHAR(50) NOT NULL,
+    -> balance DOUBLE DEFAULT 0 NOT NULL
+    -> );
+Query OK, 0 rows affected (0.021 sec)
+
+MariaDB [fintrack_test]> DESC USERS;
++----------+-------------+------+-----+---------+----------------+
+| Field    | Type        | Null | Key | Default | Extra          |
++----------+-------------+------+-----+---------+----------------+
+| username | varchar(50) | NO   |     | NULL    |                |
+| password | varchar(50) | NO   |     | NULL    |                |
+| balance  | double      | NO  	|     | 0       |                |
++----------+-------------+------+-----+---------+----------------+
+4 rows in set (0.021 sec)
+
+MariaDB [fintrack_test]> INSERT INTO users (username, password, balance) VALUES
+    -> ("USER", "123", 0);
+Query OK, 1 row affected (0.004 sec)
+
+MariaDB [fintrack_test]> CREATE TABLE add_expenditure (
+    -> id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    -> username VARCHAR(50),
+    -> purpose VARCHAR(50) NOT NULL,
+    -> money DOUBLE NOT NULL,
+    -> date DATE NOT NULL,
+    -> category VARCHAR(50) NOT NULL,
+    -> FOREIGN KEY (username) REFERENCES users(username)
+    -> );
+Query OK, 0 rows affected (0.064 sec)
+
+MariaDB [fintrack_test]> CREATE TABLE category_table (
+    -> username VARCHAR(50) PRIMARY KEY,
+    -> gadgets DOUBLE DEFAULT 0,
+    -> clothes DOUBLE DEFAULT 0,
+    -> books DOUBLE DEFAULT 0,
+    -> grocery DOUBLE DEFAULT 0,
+    -> FOREIGN KEY (username) REFERENCES users(username));
+Query OK, 0 rows affected (0.014 sec)
+
